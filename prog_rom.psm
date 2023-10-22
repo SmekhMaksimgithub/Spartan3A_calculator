@@ -1,0 +1,95 @@
+main:		
+
+		LOAD s0, 00
+		LOAD s1, 00
+		LOAD s2, 00 
+		LOAD s3, 00
+		LOAD s4, 00 
+		LOAD sA, 00;first number
+		LOAD sB, 00;second number
+		LOAD sC, 00
+		LOAD SD, 00
+		ENABLE INTERRUPT
+	
+first_loop:	
+		JUMP first_loop
+
+		ADDRESS 100
+int_routine:    ;interrupt start
+		INPUT s0, 00; get W value from port 0 
+		INPUT s1, 01;E
+		INPUT s2, 02;N
+		INPUT s3, 03;S
+		INPUT s4, 04;switches
+		;05 - output
+	first_term:	
+		compare s0, 01 ;first term - (W is set)
+		JUMP z, first_state ; if s0 == 01, jump to add label
+
+	second_term:
+		compare s1, 01 ;second term - (E is )
+		JUMP z, second_state ; if s1 == 01, jump to muliply label
+		
+	third_term:
+		compare s2, 01 ;third term - (N is set ) if yes - z is 1
+		JUMP z, third_state ; if s2 == 01, jump to set second value label
+
+		
+	forth_term:
+		compare s3, 01 ;forth term - (S is set)
+		JUMP z, forth_state ; if s3 == 01, jump to set first value label
+
+first_state: 
+		load sC, sA ; load sA (first value) to Sc register
+		add sC, sB ; add sc value (sa value) with sb
+		output sC, 05 ;load result to port 5
+		JUMP END_INTERRUPT2 ;jump to interrupt end
+
+second_state: 
+	namereg SD, multiplicand ;algorithm is taken from help
+	namereg s9, multiplier
+	namereg se, bit_mask
+	namereg s7, result_msb
+	namereg s8, result_lsb
+	load multiplicand, sA
+	load multiplier, sB
+	load bit_mask, 01
+	load result_msb, 00
+	load result_lsb, 00
+   mult_loop:
+	test multiplier, bit_mask
+	jump z, no_add
+	add result_msb, multiplicand
+   no_add: 
+	SRA result_msb
+	SRA result_lsb
+	sl0 bit_mask
+	jump nz, mult_loop	
+	output result_lsb, 05
+
+	JUMP END_INTERRUPT2  ;jump to interrupt end
+
+
+		
+third_state: 
+	load sB, s4 ; load second value from 4 port (switches) to register sb
+	output sB, 05 ; load result in port 5 (leds)
+	JUMP END_INTERRUPT2 ;jump to interrupt end
+
+		
+forth_state:
+	load sA, s4 ; load first value from 4 port (switches) to register sa
+	output sA, 05 ; load result in port 5 (leds)
+	JUMP END_INTERRUPT2  ;jump to interrupt end
+
+
+
+
+
+
+
+
+END_INTERRUPT2: RETURNI ENABLE
+
+		ADDRESS 3FF
+		JUMP int_routine
