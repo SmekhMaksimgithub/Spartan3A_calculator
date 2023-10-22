@@ -46,7 +46,7 @@ first_state:
 		JUMP END_INTERRUPT2 ;jump to interrupt end
 
 second_state: 
-	namereg SD, multiplicand ;algorithm is taken from help
+	namereg SD, multiplicand 
 	namereg s9, multiplier
 	namereg se, bit_mask
 	namereg s7, result_msb
